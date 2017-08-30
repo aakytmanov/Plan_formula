@@ -1,0 +1,42 @@
+PlanFormula:=module()
+export P, G, Plan;
+
+option package;
+
+P:=proc(A,z)
+ local K,N,Z;
+ N:=nops(A)+1;
+ K:=[seq(i,i=1..N-1)];
+ Z:=zip((a,b)->a^b,z,K);
+ Z:=`+`(op(zip((a,b)->a*b,A,Z)))+z^N;
+ return(Z);
+end proc:
+
+G:=proc(A,z)
+ local N;
+ N:=nops(A)+1;
+ return(P(A,z)/(1-z^N));
+end proc:
+
+Plan:=proc(A,ff,a,b)
+ local i,ffam,ffap,ffbm,ffbp,G1,G2,K,L,R,N,p,w,S;
+ N:=nops(A)+1;
+ K:=[seq(i,i=0..N-1)];
+ w:=map(a->exp(I*2*Pi*a/N),K);
+ p:=map(a->P(A,a),w);
+ S:=[seq(i,i=a+1..b)];
+ L:=p[1]/N*(ff(a)/2+`+`(op(map(a->ff(a),S)))-ff(b)/2);
+ for i from 1 to N-1 do
+  L:=L+p[i+1]/N*(`+`(op(map(a->ff(a-i/N),S))));
+ end do;
+ ffam:=y->ff(a-I*y);
+ ffap:=y->ff(a+I*y);
+ ffbm:=y->ff(b-I*y);
+ ffbp:=y->ff(b+I*y);
+ G1:=y->G(A,exp(-2*Pi*y));
+ G2:=y->1+G(A,exp(2*Pi*y));
+ R:=int(ff,a..b)+1/I*int(ffam*G1+ffap*G2,0..infinity)-1/I*int(ffbm*G1+ffbp*G2,0..infinity);
+ return([L,R]);
+end proc:
+
+end module:
